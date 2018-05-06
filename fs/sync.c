@@ -211,6 +211,7 @@ EXPORT_SYMBOL(vfs_fsync_range);
  */
 int vfs_fsync(struct file *file, int datasync)
 {
+
 	if (!fsync_enabled)
 		return 0;
 
@@ -236,6 +237,7 @@ static int do_fsync(unsigned int fd, int datasync)
 
 SYSCALL_DEFINE1(fsync, unsigned int, fd)
 {
+
 	if (!fsync_enabled)
 		return 0;
 
@@ -244,6 +246,7 @@ SYSCALL_DEFINE1(fsync, unsigned int, fd)
 
 SYSCALL_DEFINE1(fdatasync, unsigned int, fd)
 {
+
 	if (!fsync_enabled)
 		return 0;
 
