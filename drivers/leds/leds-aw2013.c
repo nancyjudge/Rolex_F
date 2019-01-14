@@ -298,6 +298,31 @@ static void aw2013_led_work(struct work_struct *work)
 			led->cur_blinking = led->blinking;
 		}
 
+	/* enable regulators if they are disabled */
+	if (!led->pdata->led->poweron) {
+		if (aw2013_power_on(led->pdata->led, true)) {
+			dev_err(&led->pdata->led->client->dev, "power on failed");
+			return;
+		}
+	}
+
+	led->cdev.brightness = blinking ? led->cdev.max_brightness : 0;
+	
+	if (blinking > 0) {
+		aw2013_write(led, AW_REG_GLOBAL_CONTROL,
+			AW_LED_MOUDLE_ENABLE_MASK);
+		aw2013_write(led, AW_REG_LED_CONFIG_BASE + led->id,
+			AW_LED_FADE_OFF_MASK | AW_LED_FADE_ON_MASK |
+			AW_LED_BREATHE_MODE_MASK | led->pdata->max_current);
+		aw2013_write(led, AW_REG_LED_BRIGHTNESS_BASE + led->id,
+			led->cdev.brightness);
+		aw2013_write(led, AW_REG_TIMESET0_BASE + led->id * 3,
+			led->pdata->rise_time_ms << 4 |
+			led->pdata->hold_time_ms);
+		aw2013_write(led, AW_REG_TIMESET1_BASE + led->id * 3,
+			led->pdata->fall_time_ms << 4 |
+			led->pdata->off_time_ms);
+		aw2013_read(led, AW_REG_LED_ENABLE, &val);
 		aw2013_write(led, AW_REG_LED_ENABLE, val | (1 << led->id));
 	} else {
 		aw2013_read(led, AW_REG_LED_ENABLE, &val);
